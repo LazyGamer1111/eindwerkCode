@@ -1,0 +1,50 @@
+
+plugins {
+    id("java")
+    id("com.gradleup.shadow") version "8.3.0"
+
+}
+
+group = "com.github.lazygamer1111"
+version = "1.0-SNAPSHOT"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+
+    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation("org.slf4j:slf4j-simple:2.0.16")
+    implementation("com.lmax:disruptor:4.0.0")
+    implementation("io.avaje:avaje-config:4.0")
+    implementation("io.javalin:javalin:6.5.0")
+
+    implementation("com.pi4j:pi4j-core:${gradle.extra["pi4j-ver"]}")
+    implementation("com.pi4j:pi4j-plugin-raspberrypi:${gradle.extra["pi4j-ver"]}")
+    implementation("com.pi4j:pi4j-plugin-pigpio:${gradle.extra["pi4j-ver"]}")
+}
+
+tasks {
+    jar {
+        manifest {
+            attributes["Main-Class"] = "com.github.LazyGamer1111.Main" // Change this to your main class
+        }
+    }
+
+    build {
+        dependsOn(shadowJar)
+    }
+    shadowJar {
+        mergeServiceFiles()
+        archiveClassifier.set("") // Prevent the -all suffix on the shadowjar file.
+    }
+}
+
+
+
+tasks.test {
+    useJUnitPlatform()
+}
