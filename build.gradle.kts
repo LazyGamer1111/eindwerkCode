@@ -16,10 +16,14 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
-    implementation("org.slf4j:slf4j-api:2.0.16")
-    implementation("org.slf4j:slf4j-simple:2.0.16")
+    implementation("org.slf4j:slf4j-api:2.0.17")
+    implementation("org.slf4j:slf4j-reload4j:2.0.17")
+    implementation("ch.qos.reload4j:reload4j:1.2.26")
+
     implementation("com.lmax:disruptor:4.0.0")
+
     implementation("io.avaje:avaje-config:4.0")
+
     implementation("io.javalin:javalin:6.5.0")
 
     implementation("com.pi4j:pi4j-core:${gradle.extra["pi4j-ver"]}")
