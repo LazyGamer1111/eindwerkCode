@@ -1,14 +1,12 @@
-package com.github.LazyGamer1111.Threads;
+package com.github.LazyGamer1111.threads;
 
 import com.fazecast.jSerialComm.SerialPort;
 import com.github.LazyGamer1111.dataTypes.AsyncData;
 import com.github.LazyGamer1111.dataTypes.BluetoothData;
-import com.lmax.disruptor.dsl.Disruptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
-import java.util.Objects;
 
 public class SerialThread extends Thread {
     private final AsyncData<BluetoothData> bluetoothData;

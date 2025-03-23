@@ -1,4 +1,4 @@
-package com.github.LazyGamer1111.Threads;
+package com.github.LazyGamer1111.threads;
 
 import com.github.LazyGamer1111.dataTypes.AsyncData;
 import com.github.LazyGamer1111.dataTypes.BluetoothData;
@@ -12,8 +12,6 @@ import com.pi4j.plugin.gpiod.provider.gpio.digital.GpioDDigitalOutputProvider;
 import com.pi4j.plugin.linuxfs.provider.pwm.LinuxFsPwmProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * The type My thread.
