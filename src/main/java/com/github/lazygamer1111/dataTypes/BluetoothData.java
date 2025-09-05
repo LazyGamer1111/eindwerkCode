@@ -1,5 +1,8 @@
-package com.github.LazyGamer1111.dataTypes;
+package com.github.lazygamer1111.dataTypes;
 
+/**
+ * The type Bluetooth data.
+ */
 public class BluetoothData extends Data {
     private String data = "";
 

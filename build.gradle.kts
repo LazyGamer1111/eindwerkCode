@@ -24,6 +24,8 @@ dependencies {
 
     implementation("io.javalin:javalin:6.5.0")
 
+    implementation("org.jctools:jctools-core:4.0.5")
+
     implementation("com.pi4j:pi4j-core:${gradle.extra["pi4j-ver"]}")
     implementation("com.pi4j:pi4j-plugin-raspberrypi:${gradle.extra["pi4j-ver"]}")
     implementation("com.pi4j:pi4j-plugin-linuxfs:${gradle.extra["pi4j-ver"]}")
@@ -34,7 +36,7 @@ dependencies {
 tasks {
     jar {
         manifest {
-            attributes["Main-Class"] = "com.github.LazyGamer1111.Main" // Change this to your main class
+            attributes["Main-Class"] = "com.github.lazygamer1111.Main" // Change this to your main class
         }
     }
 

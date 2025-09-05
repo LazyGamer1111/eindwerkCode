@@ -1,0 +1,1 @@
+sudo java -jar build/libs/eindwerk-1.0-SNAPSHOT.jar

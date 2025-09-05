@@ -1,23 +1,26 @@
-package com.github.LazyGamer1111;
+package com.github.lazygamer1111;
 
 
-import com.github.LazyGamer1111.threads.IOThread;
-import com.github.LazyGamer1111.threads.SerialThread;
-import com.github.LazyGamer1111.dataTypes.AsyncData;
-import com.github.LazyGamer1111.dataTypes.BluetoothData;
+import com.github.lazygamer1111.dataTypes.ControllerData;
+import com.github.lazygamer1111.threads.IOThread;
+import com.github.lazygamer1111.threads.SerialThread;
+import com.github.lazygamer1111.dataTypes.AsyncData;
+import com.github.lazygamer1111.dataTypes.BluetoothData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
 /**
- * The class Main.
+ * The type Main.
  */
 public class Main {
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     private static final ArrayList<Thread> threads = new ArrayList<>();
+    static volatile int[] controllerData = new int[14];
+
     /**
      * The entry point of application.
      *
@@ -40,11 +43,11 @@ public class Main {
     /**
      * Create threads.
      */
-    public static void createThreads() {
-        AsyncData<BluetoothData> bluetoothData = new AsyncData<>(new BluetoothData());
-        Thread io = new IOThread(bluetoothData);
+    private static void createThreads() {
+
+        Thread io = new IOThread(controllerData);
         threads.add(io);
-        Thread serial = new SerialThread(bluetoothData);
+        Thread serial = new SerialThread(controllerData);
         threads.add(serial);
 
         for (Thread thread : threads) {
