@@ -67,7 +67,7 @@ public class Servo {
      */
     public void setAngle(double angle) {
         this.angle = angle;
-        LoggerFactory.getLogger(this.getClass()).info("Servo set angle: {}", angle);
+//        LoggerFactory.getLogger(this.getClass()).info("Servo set angle: {}", angle);
         if (angle < minAngle || angle > maxAngle) {
             throw new IllegalArgumentException("Angle must be between " + minAngle + " and " + maxAngle);
         }

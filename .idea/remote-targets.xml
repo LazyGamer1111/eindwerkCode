@@ -2,6 +2,18 @@
 <project version="4">
   <component name="RemoteTargetsManager">
     <targets>
+      <target name="pi@10.212.51.44:22" type="ssh/sftp" uuid="dbf1880b-89be-4f91-8c66-cecbe532cc26">
+        <config>
+          <option name="projectRootOnTarget" value="/home/pi/eindwerk" />
+          <option name="serverName" value="pi@10.212.51.44:22 password" />
+        </config>
+        <ContributedStateBase type="JavaLanguageRuntime">
+          <config>
+            <option name="homePath" value="/home/pi/.sdkman/candidates/java/current/" />
+            <option name="javaVersionString" value="21.0.8" />
+          </config>
+        </ContributedStateBase>
+      </target>
       <target name="pi@schoolrasp:22" type="ssh/sftp" uuid="4208cfa9-86db-4264-a406-7ecf813f2f9d">
         <config>
           <option name="projectRootOnTarget" value="/home/pi/eindwerk" />
