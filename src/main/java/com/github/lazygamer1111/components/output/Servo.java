@@ -73,18 +73,13 @@ public class Servo {
         }
         double percent = angle / (abs(maxAngle) + abs(minAngle));
 
-        calcDutyCycle(percent);
+        dutyCycle = calcDutyCycle(maxPulseWidth, minPulseWidth, percent, pwm.frequency());
 
         pwm.on(this.dutyCycle);
     }
 
-    /**
-     * Calc duty cycle.
-     *
-     * @param percentage the percentage
-     */
-    public void calcDutyCycle(double percentage) {
+    public float calcDutyCycle(double maxPulseWidth, double minPulseWidth, double percentage, int frequency) {
         double PW = (maxPulseWidth - minPulseWidth) * percentage + minPulseWidth;
-        dutyCycle = (float) ((PW / ((double) 1 /pwm.frequency()))*100);
+        return (float) ((PW / ((double) 1 /frequency))*100);
     }
 }

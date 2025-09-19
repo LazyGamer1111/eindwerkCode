@@ -44,7 +44,6 @@ public class ESC {
     public void set(double channel){
         calcDutyCycle(channel);
         pwm.on(this.dutyCycle);
-        LoggerFactory.getLogger(this.getClass()).info("ESC set channel: {}", channel);
     }
 
     /**

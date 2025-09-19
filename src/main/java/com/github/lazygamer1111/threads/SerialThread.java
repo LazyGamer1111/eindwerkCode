@@ -21,10 +21,11 @@ public class SerialThread extends Thread {
     public SerialThread(int[] data) {
         controllerData = data;
     }
+    Logger log = LoggerFactory.getLogger(this.getClass());
+
 
     public void run() {
         currentThread().setName("Serial Thread");
-        Logger log = LoggerFactory.getLogger(this.getClass());
 
         for (SerialPort commPort : SerialPort.getCommPorts()) {
             log.debug("Comm Ports: {}", commPort.getSystemPortName());
@@ -38,33 +39,41 @@ public class SerialThread extends Thread {
         serialPort.openPort();
         log.debug("Open serial port");
         try {
-            ByteBuffer buffer = ByteBuffer.allocate(1024);
+            ByteBuffer buffer = ByteBuffer.allocate(64);
+            ByteBuffer size = ByteBuffer.allocate(1);
+            ByteBuffer temp = ByteBuffer.allocate(31);
             long last = Instant.now().toEpochMilli();
             while (true) {
                 buffer.clear();
-                serialPort.readBytes(buffer.array(), 32);
-                buffer.clear();
-                serialPort.readBytes(buffer.array(), 32);
-                buffer.clear();
-                serialPort.readBytes(buffer.array(), 1);
+                serialPort.readBytes(size.array(), 1);
+                buffer.put(size);
+                size.clear();
+                serialPort.readBytes(temp.array(), size.get(0)-1);
+                buffer.put(temp);
+                temp.clear();
                 buffer.order(ByteOrder.LITTLE_ENDIAN);
-                if (buffer.get(0) == 0x20) {
-                    buffer.clear();
-                    serialPort.readBytes(buffer.array(), 1);
-                    if (buffer.get(0) == 0x40){
-                        buffer.clear();
-                        serialPort.readBytes(buffer.array(), 28);
-                        for (int i = 0; i < 28; i+=2) {
-                            controllerData[i/2] = Short.toUnsignedInt(buffer.getShort(i));
-                        }
-                        buffer.clear();
-                        serialPort.readBytes(buffer.array(), 2);
-                    }
-                }
+
+                controllerData = deserialize(buffer);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         serialPort.closePort();
+    }
+
+    private int[] deserialize(ByteBuffer buffer){
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        int controllerData[] = new int[14];
+
+        switch (buffer.get(1)){
+            case 0x40:
+                for (int i = 0; i < 28; i+=2) {
+                    controllerData[i/2] = Short.toUnsignedInt(buffer.getShort(i+2));
+                }
+                buffer.clear();
+                return controllerData;
+        }
+
+        return controllerData;
     }
 }

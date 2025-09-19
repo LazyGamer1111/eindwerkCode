@@ -48,6 +48,7 @@ public class IOThread extends Thread {
         double lastData = 0d;
          while (true){
              double servoThing = controllerData[4] - 1000;
+             logger.debug(servoThing + "");
              long now = Instant.now().toEpochMilli();
              if (now-last > 22) {
                  logger.debug("Time between send = {}", now - last);
@@ -64,8 +65,6 @@ public class IOThread extends Thread {
 //             logger.debug("Memory Free: {}", Runtime.getRuntime().freeMemory()/1000000);
 //             logger.debug("Memory Total: {}", Runtime.getRuntime().totalMemory()/1000000);
 //             logger.debug("Memory Usage: {}", (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/1000000);
-
-             esc.set(controllerData[2]);
 
 
              try {
