@@ -7,12 +7,14 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Instant;
+import java.util.Arrays;
 
 /**
  * The type Serial thread.
  */
 public class SerialThread extends Thread {
     private volatile int[] controllerData;
+    private int[] temp = new int[14];
     /**
      * Instantiates a new Serial thread.
      *
@@ -41,19 +43,17 @@ public class SerialThread extends Thread {
         try {
             ByteBuffer buffer = ByteBuffer.allocate(64);
             ByteBuffer size = ByteBuffer.allocate(1);
-            ByteBuffer temp = ByteBuffer.allocate(31);
             long last = Instant.now().toEpochMilli();
             while (true) {
                 buffer.clear();
                 serialPort.readBytes(size.array(), 1);
-                buffer.put(size);
+                serialPort.readBytes(buffer.array(), size.get(0)-1);
                 size.clear();
-                serialPort.readBytes(temp.array(), size.get(0)-1);
-                buffer.put(temp);
-                temp.clear();
                 buffer.order(ByteOrder.LITTLE_ENDIAN);
 
-                controllerData = deserialize(buffer);
+
+                temp = deserialize(buffer);
+                System.arraycopy(temp, 0, controllerData, 0, temp.length);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -63,12 +63,13 @@ public class SerialThread extends Thread {
 
     private int[] deserialize(ByteBuffer buffer){
         buffer.order(ByteOrder.LITTLE_ENDIAN);
-        int controllerData[] = new int[14];
+        int[] controllerData = new int[14];
+        byte start = buffer.get();
 
-        switch (buffer.get(1)){
+        switch (start){
             case 0x40:
                 for (int i = 0; i < 28; i+=2) {
-                    controllerData[i/2] = Short.toUnsignedInt(buffer.getShort(i+2));
+                    controllerData[i/2] = Short.toUnsignedInt(buffer.getShort());
                 }
                 buffer.clear();
                 return controllerData;

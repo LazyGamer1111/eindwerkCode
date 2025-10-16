@@ -31,6 +31,7 @@ dependencies {
     implementation("com.pi4j:pi4j-plugin-linuxfs:${gradle.extra["pi4j-ver"]}")
     implementation("com.pi4j:pi4j-plugin-gpiod:${gradle.extra["pi4j-ver"]}")
     implementation("com.fazecast:jSerialComm:[2.00,3.00)")
+    implementation("io.netty:netty-all:4.2.6.Final")
 }
 
 tasks {
