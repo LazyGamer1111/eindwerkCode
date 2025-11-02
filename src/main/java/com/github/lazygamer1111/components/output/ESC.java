@@ -1,57 +1,40 @@
 package com.github.lazygamer1111.components.output;
 
-import com.pi4j.io.pwm.Pwm;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.LoggerFactory;
-
-import static java.lang.Math.abs;
-
+import java.util.HashMap;
+import java.util.Map;
 
 public class ESC {
-    /**
-     * The Min pulse width.
-     */
-    final double minPulseWidth;
-    /**
-     * The Max pulse width.
-     */
-    final double maxPulseWidth;
-    /**
-     * The Duty cycle.
-     */
-    double dutyCycle = 0;
-
-    /**
-     * The Pwm.
-     */
-    Pwm pwm;
-
-    /**
-     * Instantiates a new Servo.
-     *
-     * @param pwm           the pwm
-     * @param minPulseWidth the min pulse width
-     * @param maxPulseWidth the max pulse width
-     * @param frequency     the frequency
-     */
-    public ESC(Pwm pwm, @Nullable Double minPulseWidth, @Nullable Double maxPulseWidth, @Nullable Integer frequency) {
-        this.pwm = pwm;
-        this.minPulseWidth = minPulseWidth == null ? (double) 1 / 1000 : minPulseWidth;
-        this.maxPulseWidth = maxPulseWidth == null ? (double) 2 / 1000 : maxPulseWidth;
-        this.pwm.frequency(frequency == null ? 50 : frequency);
+    private static final Map<Integer, Integer> speed = new HashMap<>();
+    static {
+        speed.put(600, 625);
+        speed.put(1200, 313);
+        speed.put(300, 1250);
+        speed.put(150, 2500);
     }
 
-    public void set(double channel){
-        calcDutyCycle(channel);
-        pwm.on(this.dutyCycle);
+    public ESC(int pin, int speedkbs) {
+        init_SM(pin, speed.get(speedkbs));
     }
 
-    /**
-     * Calc duty cycle.
-     *
-     * @param channel the channel with value 1000-2000
-     */
-    public void calcDutyCycle(double channel) {
-        dutyCycle = (float) ((channel / ((double) 1 /pwm.frequency()))*100);
+    public void sendFrame(int throttle, boolean telemetry) {
+        short frame = (short) throttle;
+        if (telemetry) {
+            frame |= 2048;
+        }
+
+        frame = addChecksum(frame);
+
+        put(frame);
     }
+
+    private short addChecksum(short frame){
+        short crc = (short) ((~(frame ^ (frame >> 4) ^ (frame >> 8))) & 0x0F);
+        crc = (short) (frame | crc);
+        return crc;
+    }
+
+    private native void init_SM(int pin, int sm);
+
+    public native void put(short data);
+    private native short pop();
 }

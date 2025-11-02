@@ -1,8 +1,10 @@
 package com.github.lazygamer1111;
 
 
+import com.github.lazygamer1111.components.output.ESC;
 import com.github.lazygamer1111.threads.IOThread;
 import com.github.lazygamer1111.threads.SerialThread;
+import io.avaje.applog.AppLog;
 import io.avaje.config.Config;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -15,7 +17,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.ResourceBundle;
+import java.util.Scanner;
 
 /**
  * The type Main.
@@ -28,29 +33,43 @@ public class Main {
     static volatile int[] controllerData = new int[14];
     static boolean DEBUG = false;
 
+    static{
+        System.loadLibrary("native");
+    }
+
     /**
      * The entry point of application.
      *
      * @param args the input arguments
      */
     public static void main(String[] args) throws Exception {
-        log.info("Hello World");
+        ESC esc = new ESC(4, 150);
+        Scanner myObj = new Scanner(System.in);  // Create a Scanner object
 
-        DEBUG = Config.getBool("debug");
+        while(true){
+            System.out.println("Enter number");
 
-        try {
-            createThreads();
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            String numStr = myObj.nextLine();
+            int num = Integer.parseInt(numStr);
+
+            esc.put((short) num);
         }
-        if (DEBUG) {
-            int port = 8080;
-            if (args.length > 0) {
-                port = Integer.parseInt(args[0]);
-            }
 
-            new DebugServer(port).run();
-        }
+//        DEBUG = Config.getBool("debug");
+//
+//        try {
+//            createThreads();
+//        } catch (Exception e) {
+//            log.error(e.getMessage(), e);
+//        }
+//        if (DEBUG) {
+//            int port = 8080;
+//            if (args.length > 0) {
+//                port = Integer.parseInt(args[0]);
+//            }
+//
+//            new DebugServer(port).run();
+//        }
     }
 
     /**

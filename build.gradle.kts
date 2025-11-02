@@ -30,7 +30,8 @@ dependencies {
     implementation("com.pi4j:pi4j-plugin-raspberrypi:${gradle.extra["pi4j-ver"]}")
     implementation("com.pi4j:pi4j-plugin-linuxfs:${gradle.extra["pi4j-ver"]}")
     implementation("com.pi4j:pi4j-plugin-gpiod:${gradle.extra["pi4j-ver"]}")
-    implementation("com.fazecast:jSerialComm:[2.00,3.00)")
+    implementation("org.slf4j:slf4j-jdk-platform-logging:2.0.7")
+    implementation("com.fazecast:jSerialComm:2.11.2")
     implementation("io.netty:netty-all:4.2.6.Final")
 }
 
