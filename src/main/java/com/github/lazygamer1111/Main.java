@@ -3,6 +3,7 @@ package com.github.lazygamer1111;
 
 import com.github.lazygamer1111.components.output.ESC;
 import com.github.lazygamer1111.threads.IOThread;
+import com.github.lazygamer1111.threads.PIOThread;
 import com.github.lazygamer1111.threads.SerialThread;
 import io.avaje.applog.AppLog;
 import io.avaje.config.Config;
@@ -32,6 +33,7 @@ public class Main {
     private static final ArrayList<Thread> threads = new ArrayList<>();
     static volatile int[] controllerData = new int[14];
     static boolean DEBUG = false;
+    public static ESC esc;
 
     static{
         System.loadLibrary("native");
@@ -43,33 +45,36 @@ public class Main {
      * @param args the input arguments
      */
     public static void main(String[] args) throws Exception {
-        ESC esc = new ESC(4, 150);
-        Scanner myObj = new Scanner(System.in);  // Create a Scanner object
+//        ESC esc = new ESC(4, 150);
+//        Scanner myObj = new Scanner(System.in);  // Create a Scanner object
+//
+//        while(true){
+//            System.out.println("Enter number");
+//            System.out.println("SM" + esc.sm);
+//
+//            String numStr = myObj.nextLine();
+//            int num = Integer.parseInt(numStr);
+//
+//            esc.put(esc.sm, (short) num);
+//        }
 
-        while(true){
-            System.out.println("Enter number");
+        esc = new ESC(4, 150);
 
-            String numStr = myObj.nextLine();
-            int num = Integer.parseInt(numStr);
+        DEBUG = Config.getBool("debug");
 
-            esc.put((short) num);
+        try {
+            createThreads();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
+        if (DEBUG) {
+            int port = 8080;
+            if (args.length > 0) {
+                port = Integer.parseInt(args[0]);
+            }
 
-//        DEBUG = Config.getBool("debug");
-//
-//        try {
-//            createThreads();
-//        } catch (Exception e) {
-//            log.error(e.getMessage(), e);
-//        }
-//        if (DEBUG) {
-//            int port = 8080;
-//            if (args.length > 0) {
-//                port = Integer.parseInt(args[0]);
-//            }
-//
-//            new DebugServer(port).run();
-//        }
+            new DebugServer(port).run();
+        }
     }
 
     /**
@@ -80,6 +85,8 @@ public class Main {
         threads.add(io);
         Thread serial = new SerialThread(controllerData);
         threads.add(serial);
+        Thread pio = new PIOThread(controllerData, esc);
+        threads.add(pio);
 
         for (Thread thread : threads) {
             thread.start();

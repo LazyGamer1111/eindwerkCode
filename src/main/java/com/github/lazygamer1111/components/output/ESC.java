@@ -5,6 +5,8 @@ import java.util.Map;
 
 public class ESC {
     private static final Map<Integer, Integer> speed = new HashMap<>();
+    public int sm;
+
     static {
         speed.put(600, 625);
         speed.put(1200, 313);
@@ -13,7 +15,7 @@ public class ESC {
     }
 
     public ESC(int pin, int speedkbs) {
-        init_SM(pin, speed.get(speedkbs));
+        sm = init_SM(pin, speed.get(speedkbs));
     }
 
     public void sendFrame(int throttle, boolean telemetry) {
@@ -24,7 +26,7 @@ public class ESC {
 
         frame = addChecksum(frame);
 
-        put(frame);
+        put(sm, frame);
     }
 
     private short addChecksum(short frame){
@@ -33,8 +35,8 @@ public class ESC {
         return crc;
     }
 
-    private native void init_SM(int pin, int sm);
+    private native int init_SM(int pin, int sm);
 
-    public native void put(short data);
-    private native short pop();
+    public native void put(int sm, short data);
+    private native short pop(int sm);
 }
