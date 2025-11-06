@@ -24,41 +24,56 @@ import java.util.ResourceBundle;
 import java.util.Scanner;
 
 /**
- * The type Main.
+ * Main application class for the Eindwerk project.
+ * 
+ * This class serves as the entry point for the application which is designed to run on a Raspberry Pi.
+ * It manages threads for I/O operations and serial communication, and provides functionality
+ * for controlling hardware components like ESCs (Electronic Speed Controllers) and servos.
+ * 
+ * @author lazygamer1111
+ * @version 1.0
+ * @since 2025-11-02
  */
 public class Main {
 
+    /** Logger for this class */
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
+    /** List to keep track of all created threads */
     private static final ArrayList<Thread> threads = new ArrayList<>();
+    
+    /** 
+     * Shared array for controller data that is read from serial port and used by IO operations.
+     * This array is accessed by multiple threads and thus declared volatile.
+     */
     static volatile int[] controllerData = new int[14];
+    
+    /** Flag to enable/disable debug mode and start the debug server */
     static boolean DEBUG = false;
     public static ESC esc;
 
-    static{
+    /**
+     * Static initializer block to load the native library required for hardware control.
+     * This library contains native methods used by components like ESC.
+     */
+    static {
         System.loadLibrary("native");
     }
 
     /**
-     * The entry point of application.
+     * The entry point of the application.
+     * 
+     * Currently configured to create an ESC instance and accept user input to control it.
+     * The commented-out code shows the intended functionality to initialize threads for
+     * I/O and serial communication, and optionally start a debug server.
      *
-     * @param args the input arguments
+     * @param args command line arguments - when debug mode is enabled, the first argument can specify the debug server port
+     * @throws Exception if an error occurs during thread creation or debug server initialization
      */
     public static void main(String[] args) throws Exception {
-//        ESC esc = new ESC(4, 150);
-//        Scanner myObj = new Scanner(System.in);  // Create a Scanner object
-//
-//        while(true){
-//            System.out.println("Enter number");
-//            System.out.println("SM" + esc.sm);
-//
-//            String numStr = myObj.nextLine();
-//            int num = Integer.parseInt(numStr);
-//
-//            esc.put(esc.sm, (short) num);
-//        }
-
-        esc = new ESC(4, 150);
+        // DO NOT MOVE! SEGFAULT IN NATIVE LIB IF MOVED!
+        // still don't know why tho |:
+        esc = new ESC(4, 300);
 
         DEBUG = Config.getBool("debug");
 
@@ -78,7 +93,13 @@ public class Main {
     }
 
     /**
-     * Create threads.
+     * Creates and starts the application's worker threads.
+     * 
+     * This method initializes two threads:
+     * 1. IOThread - handles GPIO/PWM operations for servo control
+     * 2. SerialThread - reads controller data from the serial port
+     * 
+     * Both threads share access to the controllerData array for communication.
      */
     private static void createThreads() {
         Thread io = new IOThread(controllerData);
