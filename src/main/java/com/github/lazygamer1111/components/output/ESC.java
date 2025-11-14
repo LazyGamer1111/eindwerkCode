@@ -1,42 +1,104 @@
 package com.github.lazygamer1111.components.output;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.github.lazygamer1111.dataTypes.PIOMSG;
+import kotlin.text.Charsets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
 
 public class ESC {
-    private static final Map<Integer, Integer> speed = new HashMap<>();
-    public int sm;
+    private static final Logger log = LoggerFactory.getLogger(ESC.class);
+    private final FileInputStream in;
+    private final FileOutputStream out;
+    public int id;
 
-    static {
-        speed.put(600, 625);
-        speed.put(1200, 313);
-        speed.put(300, 1250);
-        speed.put(150, 2500);
-    }
-
-    public ESC(int pin, int speedkbs) {
-        sm = init_SM(pin, speed.get(speedkbs));
+    public ESC(int pin, int speedkbs, File inPipe, File outPipe) throws IOException {
+        in = new FileInputStream(inPipe);
+        out = new FileOutputStream(outPipe);
+        id = init_SM(pin, speedkbs);
     }
 
     public void sendFrame(int throttle, boolean telemetry) {
-        short frame = (short) throttle;
-        if (telemetry) {
-            frame |= 2048;
+        try {
+            write(PIOMSG.fromThrottle(id, throttle, telemetry));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        frame = addChecksum(frame);
-
-        put(sm, frame);
+//        short frame = (short) throttle;
+//        if (telemetry) {
+//            frame |= 2048;
+//        }
+//
+//        frame = addChecksum(frame);
+//
+////        log.debug("Sending frame: {}", frame);
+//
+//        put(id, frame);
     }
 
     private short addChecksum(short frame){
         short crc = (short) ((~(frame ^ (frame >> 4) ^ (frame >> 8))) & 0x0F);
-        crc = (short) (frame | crc);
+//        log.debug("CRC: {}", crc);
+        crc = (short) (frame | (crc << 12));
         return crc;
     }
 
-    private native int init_SM(int pin, int sm);
+    public int init_SM(int pin, int speed) throws IOException {
+        assert out != null;
+        String command = String.format("ADD %d %d", pin, speed);
+        out.write(command.getBytes(Charsets.UTF_8));
+        log.debug("Sent command: {}", command);
+        while (true) {
+            if (in.available() > 0) {
+                byte[] buffer = new byte[in.available()];
+                in.read(buffer);
+                String response = new String(buffer, Charsets.UTF_8);
+                if (response.startsWith("OK")) {
+                    response = response.split(" ")[1].replace("\n", "");
+                    return Integer.parseInt(response);
+                } else {
+                    log.error("Failed to add ESC: {}", response);
+                }
+            }
+        }
+    }
 
-    public native void put(int sm, short data);
-    private native short pop(int sm);
+    public PIOMSG write(PIOMSG msg) throws IOException {
+       put(msg);
+       return pop(true);
+    }
+
+    private void put(PIOMSG msg) throws IOException {
+        assert out != null;
+        out.write(msg.toString().getBytes(Charsets.UTF_8));
+    }
+
+    private PIOMSG pop(boolean blocking) throws IOException {
+        if (blocking){
+            while (true) {
+                if (in.available() > 0) {
+                    byte[] buffer = new byte[in.available()];
+                    in.read(buffer);
+                    String response = new String(buffer, Charsets.UTF_8);
+                    String[] responseArr = response.split(" ");
+                    return new PIOMSG(responseArr[0], Integer.parseInt(responseArr[1]), responseArr[2]);
+                }
+            }
+        } else {
+            if (in.available() > 0) {
+                byte[] buffer = new byte[in.available()];
+                in.read(buffer);
+                String response = new String(buffer, Charsets.UTF_8);
+                String[] responseArr = response.split(" ");
+                return new PIOMSG(responseArr[0], Integer.parseInt(responseArr[1]), responseArr[2]);
+            }
+
+            return null;
+        }
+    }
 }

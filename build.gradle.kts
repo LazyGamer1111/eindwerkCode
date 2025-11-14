@@ -33,6 +33,8 @@ dependencies {
     implementation("org.slf4j:slf4j-jdk-platform-logging:2.0.7")
     implementation("com.fazecast:jSerialComm:2.11.2")
     implementation("io.netty:netty-all:4.2.6.Final")
+    implementation("org.quartz-scheduler:quartz:2.5.1")
+    implementation("org.quartz-scheduler:quartz-jobs:2.5.1")
 }
 
 tasks {

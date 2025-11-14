@@ -1,4 +1,4 @@
-package com.github.lazygamer1111.dataTypes;
+package com.github.lazygamer1111.dataTypes.Archive;
 
 /**
  * The type Data.

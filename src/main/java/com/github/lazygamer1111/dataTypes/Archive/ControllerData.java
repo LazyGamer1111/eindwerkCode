@@ -1,6 +1,4 @@
-package com.github.lazygamer1111.dataTypes;
-
-import org.slf4j.LoggerFactory;
+package com.github.lazygamer1111.dataTypes.Archive;
 
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
