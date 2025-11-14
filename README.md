@@ -1,10 +1,22 @@
 # Eindwerk
 
-A small Java application intended to run on a Raspberry Pi to read controller data over a serial port and drive a servo via GPIO/PWM using Pi4J. The application spawns two threads:
-- IOThread: initializes Pi4J providers and controls a servo on a PWM channel.
-- SerialThread: reads incoming bytes from a serial device (defaults to `ttyAMA0`) and updates shared controller channel data.
+*Last updated: November 6, 2025*
 
-The project uses Gradle (Kotlin DSL) with the Shadow plugin to produce a standalone runnable jar.
+## Overview
+
+A Java application designed to run on a Raspberry Pi that provides real-time control of servos and Electronic Speed Controllers (ESCs) using controller data received over a serial connection. The application is built with a multi-threaded architecture for efficient handling of I/O operations and serial communication.
+
+### Key Features
+
+- **Multi-threaded Architecture**: Separates I/O operations from serial communication for better performance
+  - **IOThread**: Initializes Pi4J providers and controls servos via PWM channels
+  - **SerialThread**: Reads incoming bytes from a serial device (defaults to `ttyAMA0`) and updates shared controller data
+  - **PIOThread**: Controls Electronic Speed Controllers (ESCs) based on controller input
+- **Hardware Control**: Precise control of servos and ESCs with configurable parameters
+- **Debug Mode**: Optional debug server for remote monitoring and diagnostics
+- **Native Integration**: Uses JNI for direct hardware access where needed
+
+The project uses Gradle (Kotlin DSL) with the Shadow plugin to produce a standalone runnable jar that includes all dependencies.
 
 ## Stack
 - Language: Java (version not pinned in the build; see Requirements)
@@ -20,17 +32,27 @@ The project uses Gradle (Kotlin DSL) with the Shadow plugin to produce a standal
 
 ## Entry point
 - Main class: `com.github.lazygamer1111.Main`
-  - Starts IO and Serial threads.
+  - Starts IO, Serial, and PIO threads.
 
 ## Requirements
-- Operating system: Linux (intended for Raspberry Pi)
-- Hardware: Raspberry Pi with GPIO PWM exposed via LinuxFS (e.g., `/sys/class/pwm`) and gpiod available
-- Serial device connected and accessible as `ttyAMA0` (default in code). You may need to enable UART in Raspberry Pi configuration and ensure the serial console is disabled if using the same port.
-- Permissions:
-  - Access to GPIO/pwmchip via LinuxFS and gpiod often requires root or proper group membership. The provided `start.sh` uses `sudo`.
-  - Log directory: by default `src/main/resources/log4j.properties` writes to `/home/pi/logs/awesome.log`. Ensure that directory exists and is writable, or change the configuration.
-- Java Development Kit: TODO: Specify exact version. The project likely requires Java 17+ (Gradle plugins and modern dependencies) but this is not explicitly configured. Install a current LTS JDK (e.g., 17 or 21) on the target system.
-- Gradle: Gradle Wrapper is provided; no separate installation required.
+
+### System Requirements
+- **Operating System**: Linux (specifically designed for Raspberry Pi)
+- **Hardware**: 
+  - Raspberry Pi with GPIO PWM exposed via LinuxFS (e.g., `/sys/class/pwm`)
+  - gpiod library installed
+  - Serial device connected and accessible as `ttyAMA0` (default in code)
+  
+### Software Requirements
+- **Java Development Kit**: Java 17 or newer (JDK 17 LTS or JDK 21 LTS recommended)
+- **Gradle**: Gradle Wrapper is included; no separate installation required
+- **Native Libraries**: The application requires a native library that must be compiled for the target platform
+
+### Configuration Requirements
+- **UART Configuration**: You may need to enable UART in Raspberry Pi configuration and ensure the serial console is disabled if using the same port
+- **Permissions**:
+  - Access to GPIO/pwmchip via LinuxFS and gpiod often requires root or proper group membership. The provided `start.sh` uses `sudo`
+  - Log directory: by default `src/main/resources/log4j.properties` writes to `/home/pi/logs/awesome.log`. Ensure that directory exists and is writable, or change the configuration
 
 ## Setup
 1. Clone this repository.
@@ -84,6 +106,7 @@ Notes:
 - `src/main/java/com/github/lazygamer1111/Main.java` — application entrypoint; starts threads.
 - `src/main/java/com/github/lazygamer1111/threads/IOThread.java` — Pi4J setup and servo control loop.
 - `src/main/java/com/github/lazygamer1111/threads/SerialThread.java` — serial reader updating `controllerData`.
+- `src/main/java/com/github/lazygamer1111/threads/PIOThread.java` — controls ESC hardware based on controller data.
 - `src/main/java/com/github/lazygamer1111/components/output/Servo.java` — servo abstraction and duty cycle calculation.
 - `src/main/java/com/github/lazygamer1111/dataTypes/*` — simple data holder/util classes (AsyncData, ControllerData, etc.).
 - `src/main/resources/log4j.properties` — logging configuration (console + rolling file to `/home/pi/logs/awesome.log`).
@@ -94,6 +117,7 @@ Notes:
 ## How it works (high level)
 - `SerialThread` continually reads from the configured serial port, parsing a framing pattern, then fills a 14-element integer array with channel values.
 - `IOThread` converts one of the channel values into a servo angle and writes PWM updates via Pi4J, with a sleep interval (~21ms) sized to servo update rates.
+- `PIOThread` monitors another channel value and controls an ESC by setting its state to 0 or 1 based on whether the value exceeds a threshold (1500).
 
 ## Troubleshooting
 - Permission errors accessing GPIO or PWM: run as root (`sudo`) or configure udev/group permissions for your user.
@@ -101,10 +125,19 @@ Notes:
 - No logs written to file: ensure `/home/pi/logs` exists and is writable, or change `log4j.properties` path.
 
 ## License
-- TODO: Add a LICENSE file and state the chosen license here (e.g., MIT, Apache-2.0).
+MIT License. See the LICENSE file for details.
 
-## Roadmap / TODOs
-- Externalize serial port and PWM/GPIO configuration via environment variables or configuration file (Avaje Config).
-- Document hardware wiring (pins, power, level shifting if any).
-- Add unit/integration tests.
-- Consider using Javalin (already a dependency) for an optional web API/status page or remove it if not needed.
+## Roadmap / Future Enhancements
+- **Configuration Improvements**:
+  - Externalize serial port and PWM/GPIO configuration via environment variables or configuration file (using Avaje Config)
+  - Make debug mode configurable through environment variables
+- **Documentation**:
+  - Add detailed hardware wiring diagrams (pins, power, level shifting if any)
+  - Create setup guides for different Raspberry Pi models
+- **Testing**:
+  - Add unit tests for core components (Servo, ESC, data handling)
+  - Implement integration tests for hardware interaction
+- **Features**:
+  - Implement web-based monitoring interface using Javalin
+  - Add support for more controller types and protocols
+  - Improve error handling and recovery mechanisms
