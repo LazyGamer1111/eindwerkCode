@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Instant;
-import java.util.Arrays;
 
 /**
  * Serial Communication Thread for reading controller data.
@@ -94,6 +93,8 @@ public class SerialThread extends Thread {
             // Allocate buffers for reading data
             ByteBuffer buffer = ByteBuffer.allocate(64);  // Main data buffer
             ByteBuffer size = ByteBuffer.allocate(1);     // Size byte buffer
+
+            ByteBuffer bufferKiss = ByteBuffer.allocate(10);  // Main data buffer
             long last = Instant.now().toEpochMilli();
             
             // Main data reading loop
@@ -114,6 +115,8 @@ public class SerialThread extends Thread {
                 // Deserialize the data and update the shared array
                 temp = deserialize(buffer);
                 System.arraycopy(temp, 0, controllerData, 0, temp.length);
+
+
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -137,10 +140,10 @@ public class SerialThread extends Thread {
     private int[] deserialize(ByteBuffer buffer){
         // Ensure buffer is in little-endian byte order
         buffer.order(ByteOrder.LITTLE_ENDIAN);
-        
+
         // Create array to hold deserialized data
         int[] controllerData = new int[14];
-        
+
         // Read the header byte
         byte start = buffer.get();
 
@@ -158,4 +161,6 @@ public class SerialThread extends Thread {
         // Return empty array if header byte is not recognized
         return controllerData;
     }
+
+
 }

@@ -41,13 +41,6 @@ public class ESC {
 //        put(id, frame);
     }
 
-    private short addChecksum(short frame){
-        short crc = (short) ((~(frame ^ (frame >> 4) ^ (frame >> 8))) & 0x0F);
-//        log.debug("CRC: {}", crc);
-        crc = (short) (frame | (crc << 12));
-        return crc;
-    }
-
     public int init_SM(int pin, int speed) throws IOException {
         assert out != null;
         String command = String.format("ADD %d %d", pin, speed);
@@ -69,6 +62,7 @@ public class ESC {
     }
 
     public PIOMSG write(PIOMSG msg) throws IOException {
+        log.debug("Sending message: {}", msg);
        put(msg);
        return pop(true);
     }

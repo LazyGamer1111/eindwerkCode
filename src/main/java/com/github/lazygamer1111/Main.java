@@ -5,6 +5,7 @@ import com.github.lazygamer1111.components.output.ESC;
 import com.github.lazygamer1111.components.output.Servo;
 import com.github.lazygamer1111.threads.IOJob;
 import com.github.lazygamer1111.threads.PIOJob;
+import com.github.lazygamer1111.threads.SerialKiss;
 import com.github.lazygamer1111.threads.SerialThread;
 import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
@@ -94,7 +95,9 @@ public class Main {
      */
     private static void createThreads() {
         Thread serial = new SerialThread(controllerData);
+        Thread serialKiss = new SerialKiss();
         threads.add(serial);
+        threads.add(serialKiss);
 
         for (Thread thread : threads) {
             thread.start();
