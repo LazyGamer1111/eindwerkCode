@@ -3,10 +3,7 @@ package com.github.lazygamer1111;
 
 import com.github.lazygamer1111.components.output.ESC;
 import com.github.lazygamer1111.components.output.Servo;
-import com.github.lazygamer1111.threads.IOJob;
-import com.github.lazygamer1111.threads.PIOJob;
-import com.github.lazygamer1111.threads.SerialKiss;
-import com.github.lazygamer1111.threads.SerialThread;
+import com.github.lazygamer1111.threads.*;
 import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
 import com.pi4j.io.gpio.digital.DigitalOutput;
@@ -96,8 +93,10 @@ public class Main {
     private static void createThreads() {
         Thread serial = new SerialThread(controllerData);
         Thread serialKiss = new SerialKiss();
+        Thread serialTelem = new SerialTelem();
         threads.add(serial);
         threads.add(serialKiss);
+//        threads.add(serialTelem);
 
         for (Thread thread : threads) {
             thread.start();
@@ -120,6 +119,7 @@ public class Main {
         servo = new Servo(pi4j.create(servoConfig), 0d, 90d, 1d/1000d, 2d/1000d, 50);
         try {
             esc = new ESC(4, 300, new File("/home/pi/NamedPipes/PIOTelemetry"), new File("/home/pi/NamedPipes/PIOPipe"));
+            log.info("ESC created successfully");
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

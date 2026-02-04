@@ -7,13 +7,13 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-public class SerialKiss extends Thread {
+public class SerialTelem extends Thread {
 
     Logger log = LoggerFactory.getLogger(this.getClass());
 
 
     public void run() {
-        final String portName2 = "ttyAMA3";
+        final String portName2 = "ttyAMA4";
         SerialPort serialPort2 = SerialPort.getCommPort(portName2);
         serialPort2.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 0);
         serialPort2.setComPortParameters(115200, 8, SerialPort.ONE_STOP_BIT, SerialPort.NO_PARITY);
@@ -26,12 +26,14 @@ public class SerialKiss extends Thread {
 
             while (true) {
                 int bytes = serialPort2.bytesAvailable();
-//                log.info("Bytes available: " + serialPort2.bytesAvailable());
-                if (serialPort2.bytesAvailable() >= 10) {
-                    serialPort2.readBytes(buffer.array(), 10);
-                    deserializeKiss(buffer);
-                    buffer.clear();
+                if (bytes > 0) {
+                    log.info("Bytes available: {}", serialPort2.bytesAvailable());
                 }
+//                log.info("Bytes available: " + serialPort2.bytesAvailable());
+//                if (serialPort2.bytesAvailable() >= 10) {
+//                    serialPort2.readBytes(buffer.array(), 10);
+//                    buffer.clear();
+//                }
             }
         } finally {
             serialPort2.closePort();
@@ -39,14 +41,4 @@ public class SerialKiss extends Thread {
         }
     }
 
-
-    private void deserializeKiss(ByteBuffer buffer){
-        buffer.order(ByteOrder.BIG_ENDIAN);
-
-        log.info("Temp: {}", buffer.get());
-        log.info("Voltage: {}", buffer.getShort() * 0.01);
-        log.info("Current: {}", buffer.getShort() * 0.01);
-        log.info("Consumption: {}", buffer.getShort() * 0.01);
-        log.info("ERPM: {}", buffer.getShort() * 100);
-    }
 }

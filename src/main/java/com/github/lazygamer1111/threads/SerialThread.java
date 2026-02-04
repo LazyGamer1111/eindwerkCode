@@ -1,12 +1,16 @@
 package com.github.lazygamer1111.threads;
 
 import com.fazecast.jSerialComm.SerialPort;
+import org.joou.UByte;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Instant;
+
+import static org.joou.Unsigned.*;
+
 
 /**
  * Serial Communication Thread for reading controller data.
@@ -31,6 +35,14 @@ public class SerialThread extends Thread {
      * read from the serial port.
      */
     private volatile int[] controllerData;
+
+
+    // Configure serial port (Raspberry Pi UART port)
+    final String portName = "ttyAMA0";
+    SerialPort serialPort = SerialPort.getCommPort(portName);
+
+    final String portName2 = "ttyAMA4";
+    SerialPort serialPort2 = SerialPort.getCommPort(portName2);
     
     /**
      * Temporary array used during deserialization.
@@ -79,14 +91,14 @@ public class SerialThread extends Thread {
             log.debug("Comm Ports: {}", commPort.getSystemPortName());
         }
 
-        // Configure serial port (Raspberry Pi UART port)
-        final String portName = "ttyAMA0";
-        SerialPort serialPort = SerialPort.getCommPort(portName);
         serialPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_BLOCKING, 0, 0);
         serialPort.setComPortParameters(115200, 8, SerialPort.ONE_STOP_BIT, SerialPort.NO_PARITY);
 
         // Open the serial port
         serialPort.openPort();
+        serialPort2.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 0);
+        serialPort2.setComPortParameters(115200, 8, SerialPort.ONE_STOP_BIT, SerialPort.NO_PARITY);
+
         log.debug("Open serial port");
         
         try {
@@ -104,6 +116,10 @@ public class SerialThread extends Thread {
                 
                 // Read packet size byte first
                 serialPort.readBytes(size.array(), 1);
+
+                if (size.get(0) != 32) {
+                    log.info("Size: {}", size.get(0));
+                }
                 
                 // Read the rest of the packet based on size
                 serialPort.readBytes(buffer.array(), size.get(0)-1);
@@ -115,8 +131,6 @@ public class SerialThread extends Thread {
                 // Deserialize the data and update the shared array
                 temp = deserialize(buffer);
                 System.arraycopy(temp, 0, controllerData, 0, temp.length);
-
-
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -148,14 +162,21 @@ public class SerialThread extends Thread {
         byte start = buffer.get();
 
         // Process the packet based on the header byte
-        switch (start){
-            case 0x40:  // Standard controller data packet
-                // Read 14 short values (28 bytes) and convert to unsigned int
-                for (int i = 0; i < 28; i+=2) {
-                    controllerData[i/2] = Short.toUnsignedInt(buffer.getShort());
-                }
-                buffer.clear();
-                return controllerData;
+        if (start == 0x40) {  // Standard controller data packet
+            // Read 14 short values (28 bytes) and convert to unsigned int
+            for (int i = 0; i < 28; i += 2) {
+                controllerData[i/2] = Math.clamp(Short.toUnsignedInt(buffer.getShort()), 1000, 2000);
+            }
+            buffer.clear();
+            return controllerData;
+        }
+        else {
+            if ((start << 4) == 0x80){
+                log.info("SENS DISCOVER");
+                serialPort2.writeBytes(new byte[]{0x06, ubyte(0x91).byteValue(), 0x03, ubyte(0x02).byteValue(), 0x63, ubyte(0xFF).byteValue()}, 1);
+            } else {
+                log.info("DATA: {}", start & 0xF0);
+            }
         }
 
         // Return empty array if header byte is not recognized

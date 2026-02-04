@@ -23,6 +23,7 @@ dependencies {
     implementation("io.avaje:avaje-config:4.0")
 
     implementation("io.javalin:javalin:6.5.0")
+    implementation("org.jooq:joou:0.9.4")
 
     implementation("org.jctools:jctools-core:4.0.5")
 

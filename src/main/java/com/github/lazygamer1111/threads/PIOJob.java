@@ -14,15 +14,17 @@ public class PIOJob implements Job {
 
     @Override
     public void execute(JobExecutionContext c) throws JobExecutionException {
-        int throttle = ((controllerData[2] - 1000) * 2 ) + 47;
-
-        log.debug("Sending frame");
+        int throttle = (controllerData[2] - 1000);
 
         try {
             if (controllerData[9] == 1000) {
                 esc.sendFrame(0, true);
-            } else {
+            } else if (controllerData[8] == 2000) {
                 esc.sendFrame(throttle, false);
+            } else if (controllerData[8] == 1000) {
+                esc.sendFrame(throttle + 1024, false);
+            } else if (controllerData[8] == 1500) {
+                esc.sendFrame(0, false);
             }
         } catch (Exception e) {
             log.error("Failed to send frame!", e);
