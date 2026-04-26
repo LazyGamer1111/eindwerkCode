@@ -19,6 +19,8 @@ import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.dronefleet.mavlink.MavlinkConnection;
+
 import static org.quartz.SimpleScheduleBuilder.*;
 
 import java.io.File;
@@ -30,7 +32,6 @@ import java.util.ArrayList;
  * The type Main.
  */
 public class Main {
-
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     private static final ArrayList<Thread> threads = new ArrayList<>();
@@ -41,11 +42,13 @@ public class Main {
     public static Scheduler scheduler;
     public static Context pi4j;
 
+    public static MavlinkConnection connection;
+
     /**
      * The entry point of application.
      *
      * @param args the input arguments
-     */
+     */ 
     public static void main(String[] args) throws Exception {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
@@ -93,7 +96,7 @@ public class Main {
     private static void createThreads() {
         Thread serial = new SerialThread(controllerData);
         Thread serialKiss = new SerialKiss();
-        Thread serialTelem = new SerialTelem();
+//        Thread serialTelem = new SerialTelem();
         threads.add(serial);
         threads.add(serialKiss);
 //        threads.add(serialTelem);

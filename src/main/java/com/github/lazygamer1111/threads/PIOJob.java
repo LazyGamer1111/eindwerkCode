@@ -1,6 +1,7 @@
 package com.github.lazygamer1111.threads;
 
 import com.github.lazygamer1111.components.output.ESC;
+import com.github.lazygamer1111.dataTypes.ESCCommands;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -14,18 +15,27 @@ public class PIOJob implements Job {
 
     @Override
     public void execute(JobExecutionContext c) throws JobExecutionException {
-        int throttle = (controllerData[2] - 1000);
+        int throttle = (controllerData[2] - 1000) + 48;
 
         try {
-            if (controllerData[9] == 1000) {
+            if (controllerData[5] == 2000) {
+                log.info("Sending DSHOT_CMD_BEACON1");
+                esc.sendFrame(ESCCommands.DSHOT_CMD_BEACON1.ordinal(), true);
+                return;
+            }
+
+
+            if (controllerData[8] == 1000) {
                 esc.sendFrame(0, true);
-            } else if (controllerData[8] == 2000) {
-                esc.sendFrame(throttle, false);
-            } else if (controllerData[8] == 1000) {
-                esc.sendFrame(throttle + 1024, false);
-            } else if (controllerData[8] == 1500) {
+            } else if (controllerData[7] == 2000) {
+                esc.sendFrame(Math.clamp(throttle+1000, 1048, 2047), false);
+            } else if (controllerData[7] == 1000) {
+                esc.sendFrame(Math.clamp(throttle, 48, 1047), false);
+            } else if (controllerData[7] == 1500) {
                 esc.sendFrame(0, false);
             }
+
+
         } catch (Exception e) {
             log.error("Failed to send frame!", e);
         }

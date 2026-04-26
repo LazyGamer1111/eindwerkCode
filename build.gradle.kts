@@ -36,6 +36,7 @@ dependencies {
     implementation("io.netty:netty-all:4.2.6.Final")
     implementation("org.quartz-scheduler:quartz:2.5.1")
     implementation("org.quartz-scheduler:quartz-jobs:2.5.1")
+    implementation("io.dronefleet.mavlink:mavlink:1.1.11")
 }
 
 tasks {

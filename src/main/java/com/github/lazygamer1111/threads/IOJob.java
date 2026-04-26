@@ -90,7 +90,7 @@ public class IOJob implements Job {
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        double servoThing = controllerData[2] - 1000;
+        double servoThing = controllerData[0] - 1000;
 //             logger.debug(Arrays.toString(controllerData));
         long now = Instant.now().toEpochMilli();
 //             logger.debug("Time between send = {}", now - last);
