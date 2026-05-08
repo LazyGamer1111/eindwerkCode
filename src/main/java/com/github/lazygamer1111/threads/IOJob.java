@@ -97,7 +97,7 @@ public class IOJob implements Job {
         servoThing *= 90;
         servoThing /= 1000;
         if (servoThing > 0) {
-            servo.setAngle(servoThing);
+            servo.setAngle(90-servoThing);
         }
         now = Instant.now().toEpochMilli();
 //             logger.debug("Time to after servo = {}", now - last);
