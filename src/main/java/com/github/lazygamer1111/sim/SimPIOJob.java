@@ -1,32 +1,33 @@
-package com.github.lazygamer1111.threads;
+package com.github.lazygamer1111.sim;
 
-import com.github.lazygamer1111.components.output.ESC;
-import com.github.lazygamer1111.dataTypes.ESCCommands;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PIOJob implements Job {
-    private volatile int[] controllerData;
-    private ESC esc;
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
+/**
+ * Simulated version of the PIOJob. It mirrors the throttle/range/kill-switch
+ * logic but instead of sending frames to an ESC, it logs the computed values.
+ */
+public class SimPIOJob implements Job {
+    private static final Logger log = LoggerFactory.getLogger(SimPIOJob.class);
 
-    // Smoothing state (time-based): remember last frame and last update time
+    // Smoothing state (time-based, mirrors PIOJob)
     private int lastFrame = 0;
     private long lastUpdateNanos = 0L;
-    // Target duration to transition from current to desired (in seconds)
     private static final double SMOOTH_DURATION_SECONDS = 1.0; // from start to end ≈ 1s
 
     @Override
-    public void execute(JobExecutionContext c) throws JobExecutionException {
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        int[] controllerData = (int[]) context.getJobDetail().getJobDataMap().get("ControllerData");
+        if (controllerData == null) return;
+
         int throttle = (controllerData[2] - 1000) + 48;
 
         try {
             if (controllerData[5] == 2000) {
-                log.info("Sending DSHOT_CMD_BEACON1");
-                esc.sendFrame(ESCCommands.DSHOT_CMD_BEACON1.ordinal(), true);
+                log.info("[SIM ESC] Beacon command requested (DSHOT_CMD_BEACON1)");
                 return;
             }
 
@@ -39,10 +40,10 @@ public class PIOJob implements Job {
                 telemetry = true; // keep telemetry when hard stop requested
             } else if (controllerData[7] == 2000) {
                 // Forward/high range
-                desiredFrame = Math.clamp(throttle + 1000, 1048, 2047);
+                desiredFrame = clamp(throttle + 1000, 1048, 2047);
             } else if (controllerData[7] == 1000) {
                 // Low/normal range
-                desiredFrame = Math.clamp(throttle, 48, 1047);
+                desiredFrame = clamp(throttle, 48, 1047);
             } else if (controllerData[7] == 1500) {
                 // Neutral
                 desiredFrame = 0;
@@ -59,12 +60,11 @@ public class PIOJob implements Job {
                 lastUpdateNanos = now;
 
                 if (desiredFrame == 0) {
-                    // Safety: snap to zero immediately for kill/neutral
                     frameToSend = 0;
                 } else {
                     int delta = desiredFrame - lastFrame;
                     if (delta != 0) {
-                        // Compute step so that we reach desired in approximately SMOOTH_DURATION_SECONDS
+                        // 1-second smoothing to reach desired regardless of distance
                         double stepExact = Math.abs(delta) * (dt / SMOOTH_DURATION_SECONDS);
                         int step = (int) Math.max(1, Math.round(stepExact));
                         if (delta > 0) {
@@ -77,26 +77,21 @@ public class PIOJob implements Job {
                     }
                 }
 
-                esc.sendFrame(frameToSend, telemetry);
+                log.info("[SIM ESC] frame={} telemetry={} (desired={} last={})", frameToSend, telemetry, desiredFrame, lastFrame);
                 lastFrame = frameToSend;
             }
-
         } catch (Exception e) {
-            log.error("Failed to send frame!", e);
+            log.error("[SIM ESC] Failed to compute frame", e);
         }
 
         try {
             Thread.sleep(10);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Thread.currentThread().interrupt();
         }
     }
 
-    public void setControllerData(int[] controllerData) {
-        this.controllerData = controllerData;
-    }
-
-    public void setESC(ESC esc) {
-        this.esc = esc;
+    private static int clamp(int v, int lo, int hi) {
+        return Math.max(lo, Math.min(hi, v));
     }
 }

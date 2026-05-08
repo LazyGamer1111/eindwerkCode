@@ -70,6 +70,36 @@ This will also produce a fat jar via the Shadow plugin:
 - Output: `build/libs/eindwerk-1.0-SNAPSHOT.jar`
 
 ## Run
+
+### Simulation (no hardware required)
+You can run a full movement simulation that leaves the base code untouched.
+- Main class: `com.github.lazygamer1111.sim.SimMain`
+- You can use the preconfigured IntelliJ Run Configuration: "Simulation (Console)" found under the .run folder, or create a new Run Configuration pointing to that main class; no program args are needed.
+- Controls (type in console and press Enter):
+  - w: throttle up (+25)
+  - s: throttle down (-25)
+  - a: steer left (-25)
+  - d: steer right (+25)
+  - c: center steering (1500)
+  - r: cycle range (ch7: 1000 -> 1500 -> 2000 -> 1000)
+  - k: toggle kill switch (ch8: 2000/1000)
+  - b: beacon pulse (ch5: 2000 for a short tick)
+  - set <ch> <val>: set a raw channel (0-13) to value (1000-2000)
+  - q: quit
+- What you’ll see: log lines like [SIM SERVO] and [SIM ESC] showing servo angles and ESC frames computed by the same logic as production jobs.
+
+### Visual GUI Simulation (no hardware required)
+A Swing-based visual simulator with on-screen controls and live visualization.
+- Main class: `com.github.lazygamer1111.sim.SimGuiMain`
+- Create a new Run Configuration pointing to this main class.
+- Controls:
+  - Buttons and sliders for steering (ch0) and throttle (ch2)
+  - Keyboard shortcuts (when the window is focused): W/S (throttle +/-), A/D (steer left/right), C (center steering), R (cycle range), K (toggle kill), B (beacon)
+- Display:
+  - Car visualization with steerable front wheels and a throttle bar
+  - Live readouts for ch0/ch2 values, range (ch7), kill (ch8), and computed servo angle
+- Uses the same SimIOJob/SimPIOJob logic as the console simulator; production code remains untouched.
+
 - On Raspberry Pi (as root due to GPIO/serial access in many setups):
   - `sudo java -jar build/libs/eindwerk-1.0-SNAPSHOT.jar`
 - Alternatively, use the provided script:
@@ -141,3 +171,4 @@ MIT License. See the LICENSE file for details.
   - Implement web-based monitoring interface using Javalin
   - Add support for more controller types and protocols
   - Improve error handling and recovery mechanisms
+  - ESC smoothing: time-based 1-second ramp from current to target (regardless of distance), with instant snap to zero on kill/neutral. Simulator mirrors this behavior.
